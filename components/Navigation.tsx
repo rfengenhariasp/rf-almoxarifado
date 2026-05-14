@@ -67,6 +67,16 @@ export default function Navigation() {
             >
               Relatórios
             </Link>
+            <Link
+              href="/importar"
+              className={`font-medium transition-colors ${
+                isActive('/importar')
+                  ? 'text-blue-600 border-b-2 border-blue-600'
+                  : 'text-gray-600 hover:text-blue-600'
+              }`}
+            >
+              Importar
+            </Link>
           </div>
         </div>
       </div>
