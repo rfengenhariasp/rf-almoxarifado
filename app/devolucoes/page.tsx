@@ -2,10 +2,10 @@
 
 import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
-import { Saida, Material, Cliente } from '@/lib/types'
+import { Devolucao, Material, Cliente } from '@/lib/types'
 
-export default function SaidasPage() {
-  const [saidas, setSaidas] = useState<Saida[]>([])
+export default function DevolucoesPage() {
+  const [devolucoes, setDevolucoes] = useState<Devolucao[]>([])
   const [materiais, setMateriais] = useState<Material[]>([])
   const [clientes, setClientes] = useState<Cliente[]>([])
   const [loading, setLoading] = useState(true)
@@ -14,16 +14,15 @@ export default function SaidasPage() {
     material_id: '',
     cliente_id: '',
     quantidade: 0,
-    responsavel: '',
     observacoes: '',
   })
 
   async function carregar() {
     setLoading(true)
-    const { data: said } = await supabase
-      .from('saidas')
+    const { data: dev } = await supabase
+      .from('devolucoes')
       .select('*')
-      .order('data_saida', { ascending: false })
+      .order('data_devolucao', { ascending: false })
       .limit(50)
 
     const { data: mat } = await supabase
@@ -36,7 +35,7 @@ export default function SaidasPage() {
       .select('*')
       .eq('ativo', true)
 
-    setSaidas(said || [])
+    setDevolucoes(dev || [])
     setMateriais(mat || [])
     setClientes(cli || [])
     setLoading(false)
@@ -48,30 +47,28 @@ export default function SaidasPage() {
 
   async function salvar() {
     if (!form.material_id || !form.cliente_id || form.quantidade <= 0) {
-      alert('Preencha Material, Cliente e Quantidade')
+      alert('Preencha todos os campos obrigatórios')
       return
     }
 
     const material = materiais.find((m) => m.id === form.material_id)
-    if (!material || material.estoque_atual < form.quantidade) {
-      alert('Estoque insuficiente')
+    if (!material) {
+      alert('Material não encontrado')
       return
     }
 
-    // Registrar saída
-    const cliente = clientes.find((c) => c.id === form.cliente_id)
-    await supabase.from('saidas').insert([
+    // Registrar devolução
+    await supabase.from('devolucoes').insert([
       {
         material_id: form.material_id,
+        cliente_id: form.cliente_id,
         quantidade: form.quantidade,
-        cliente_nome: cliente?.nome,
-        responsavel: form.responsavel,
         observacoes: form.observacoes,
       },
     ])
 
-    // Atualizar estoque
-    const novo_estoque = material.estoque_atual - form.quantidade
+    // Atualizar estoque do material (somar de volta)
+    const novo_estoque = material.estoque_atual + form.quantidade
     await supabase
       .from('materiais')
       .update({ estoque_atual: novo_estoque })
@@ -82,7 +79,6 @@ export default function SaidasPage() {
       material_id: '',
       cliente_id: '',
       quantidade: 0,
-      responsavel: '',
       observacoes: '',
     })
     carregar()
@@ -91,9 +87,9 @@ export default function SaidasPage() {
   return (
     <main className="p-6">
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold">📤 Saídas de Material</h1>
+        <h1 className="text-3xl font-bold">↩️ Devoluções de Material</h1>
         <button onClick={() => setModalOpen(true)} className="btn-primary">
-          + Nova Saída
+          + Nova Devolução
         </button>
       </div>
 
@@ -103,28 +99,29 @@ export default function SaidasPage() {
         <div className="overflow-x-auto">
           <table className="w-full border-collapse">
             <thead>
-              <tr className="bg-gray-100">
+              <tr className="bg-blue-100">
                 <th className="border p-2 text-left">Data</th>
                 <th className="border p-2 text-left">Material</th>
-                <th className="border p-2 text-center">Quantidade</th>
                 <th className="border p-2 text-left">Cliente/Obra</th>
-                <th className="border p-2 text-left">Responsável</th>
+                <th className="border p-2 text-center">Quantidade</th>
+                <th className="border p-2 text-left">Observações</th>
               </tr>
             </thead>
             <tbody>
-              {saidas.map((s) => {
-                const mat = materiais.find((m) => m.id === s.material_id)
+              {devolucoes.map((d) => {
+                const mat = materiais.find((m) => m.id === d.material_id)
+                const cli = clientes.find((c) => c.id === d.cliente_id)
                 return (
-                  <tr key={s.id} className="border-b hover:bg-gray-50">
+                  <tr key={d.id} className="border-b hover:bg-blue-50">
                     <td className="border p-2 text-sm">
-                      {new Date(s.data_saida).toLocaleDateString('pt-BR')}
+                      {new Date(d.data_devolucao).toLocaleDateString('pt-BR')}
                     </td>
                     <td className="border p-2">{mat?.nome}</td>
+                    <td className="border p-2">{cli?.nome}</td>
                     <td className="border p-2 text-center font-bold">
-                      {s.quantidade}
+                      {d.quantidade}
                     </td>
-                    <td className="border p-2">{s.cliente_nome}</td>
-                    <td className="border p-2">{s.responsavel}</td>
+                    <td className="border p-2 text-sm">{d.observacoes}</td>
                   </tr>
                 )
               })}
@@ -136,7 +133,7 @@ export default function SaidasPage() {
       {modalOpen && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
           <div className="bg-white rounded-lg p-6 max-w-2xl w-full max-h-96 overflow-y-auto">
-            <h2 className="text-xl font-bold mb-4">Nova Saída de Material</h2>
+            <h2 className="text-xl font-bold mb-4">Nova Devolução de Material</h2>
 
             <div className="grid grid-cols-2 gap-4">
               <div>
@@ -168,7 +165,7 @@ export default function SaidasPage() {
                   <option value="">Selecione...</option>
                   {materiais.map((m) => (
                     <option key={m.id} value={m.id}>
-                      {m.nome} (Est: {m.estoque_atual})
+                      {m.nome}
                     </option>
                   ))}
                 </select>
@@ -187,18 +184,7 @@ export default function SaidasPage() {
                   className="input-field"
                 />
               </div>
-              <div>
-                <label className="label">Responsável</label>
-                <input
-                  type="text"
-                  value={form.responsavel}
-                  onChange={(e) =>
-                    setForm({ ...form, responsavel: e.target.value })
-                  }
-                  className="input-field"
-                  placeholder="Nome do responsável"
-                />
-              </div>
+              <div></div>
               <div className="col-span-2">
                 <label className="label">Observações</label>
                 <textarea
@@ -208,6 +194,7 @@ export default function SaidasPage() {
                   }
                   className="input-field"
                   rows={2}
+                  placeholder="Ex: Algumas peças danificadas, etc"
                 />
               </div>
             </div>
@@ -220,7 +207,7 @@ export default function SaidasPage() {
                 Cancelar
               </button>
               <button onClick={salvar} className="btn-primary">
-                Registrar Saída
+                Registrar Devolução
               </button>
             </div>
           </div>
@@ -229,4 +216,3 @@ export default function SaidasPage() {
     </main>
   )
 }
-

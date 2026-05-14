@@ -28,6 +28,16 @@ export default function Navigation() {
               Fornecedores
             </Link>
             <Link
+              href="/clientes"
+              className={`font-medium transition-colors ${
+                isActive('/clientes')
+                  ? 'text-blue-600 border-b-2 border-blue-600'
+                  : 'text-gray-600 hover:text-blue-600'
+              }`}
+            >
+              Clientes
+            </Link>
+            <Link
               href="/materiais"
               className={`font-medium transition-colors ${
                 isActive('/materiais')
@@ -56,6 +66,16 @@ export default function Navigation() {
               }`}
             >
               Saídas
+            </Link>
+            <Link
+              href="/devolucoes"
+              className={`font-medium transition-colors ${
+                isActive('/devolucoes')
+                  ? 'text-blue-600 border-b-2 border-blue-600'
+                  : 'text-gray-600 hover:text-blue-600'
+              }`}
+            >
+              Devoluções
             </Link>
             <Link
               href="/relatorios"

@@ -15,6 +15,17 @@ export interface Fornecedor {
   atualizado_em: string
 }
 
+export interface Cliente {
+  id: string
+  nome: string
+  telefone?: string
+  endereco?: string
+  os_eloca?: string
+  ativo: boolean
+  criado_em: string
+  atualizado_em: string
+}
+
 export interface Material {
   id: string
   nome: string
@@ -53,6 +64,17 @@ export interface Saida {
   cliente_nome?: string
   responsavel?: string
   data_saida: string
+  observacoes?: string
+  criado_em: string
+}
+
+export interface Devolucao {
+  id: string
+  material_id: string
+  cliente_id: string
+  saida_id?: string
+  quantidade: number
+  data_devolucao: string
   observacoes?: string
   criado_em: string
 }
