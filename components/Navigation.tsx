@@ -57,6 +57,16 @@ export default function Navigation() {
             >
               Saídas
             </Link>
+            <Link
+              href="/relatorios"
+              className={`font-medium transition-colors ${
+                isActive('/relatorios')
+                  ? 'text-blue-600 border-b-2 border-blue-600'
+                  : 'text-gray-600 hover:text-blue-600'
+              }`}
+            >
+              Relatórios
+            </Link>
           </div>
         </div>
       </div>
